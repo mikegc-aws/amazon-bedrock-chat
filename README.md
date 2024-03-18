@@ -16,16 +16,17 @@ The main focus of this repo is the `Chat()` Python class which handles all(?) th
 
 ### Dependencies
 
-#### For class files:
+```
+# For class files:
 boto3==1.28.59
 botocore==1.31.85
 pydantic==2.6.3
 pydantic_core==2.16.3
 
-#### For clients:
+# For clients:
 streamlit==1.32.0
 streamlit-chat==0.1.1
-
+```
 
 ### Installing
 
