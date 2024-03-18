@@ -31,7 +31,9 @@ streamlit-chat==0.1.1
 ### Installing
 
 * Clone repo
-* `pip install -r requirements.txt`
+```
+pip install -r requirements.txt
+```
 
 ### Executing program
 
@@ -39,7 +41,7 @@ streamlit-chat==0.1.1
     * Ensure you have AWS credentials accessible in the environment.
 
 ```
-streamlit run ./xxxxxxxx.py
+streamlit run ./demo_ui_chat_stream.py
 ```
 
 ## Authors
