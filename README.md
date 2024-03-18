@@ -2,9 +2,11 @@
 
 This is "from-first-principles" code for performing chat flows with generative AI models from Amazon Bedrock. The code here is intended as an exploration of techniques to interact with Amazon Bedrock models, and code to help test other concepts such as agents, tools and function calling. 
 
-The repo includes Python class files that support chat, and some sample client implementations.
+The repo includes __Python class__ files that support chat, and some __sample client implementations__.
 
 Currently this code only supports Anthropi Claude models via Amazon Bedrock.
+
+![StreamLit Demo](./img/streamlit_demo.gif "demo_ui_chat_stream.py in action")
 
 ## Description
 
