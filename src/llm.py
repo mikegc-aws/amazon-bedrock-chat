@@ -5,9 +5,29 @@ from pydantic import BaseModel
 from typing import Literal, Dict, Optional
 
 class ClaudeLLM(BaseModel):
+    """
+    A class representing Claude Language Models, facilitating synchronous and
+    asynchronous interactions with various versions of the Claude LLM via the 
+    AWS Bedrock Runtime.
+
+    Attributes:
+        modelId (Literal): Identifier for the specific Claude model version.
+        region_name (str): AWS region where the Bedrock Runtime is available.
+        content_type (str): Content type for the request, typically "application/json".
+        accept_type (str): Expected content type of the response, typically "application/json".
+        anthropic_version (str): Version of the Anthropic API being used.
+        max_tokens (int): Maximum number of tokens to generate in the response.
+
+    Methods:
+        generate(prompt, system_prompt=None): Generate response synchronously.
+        generate_stream(prompt, system_prompt=None): Stream response asynchronously, yielding chunks.
+    """
     modelId: Literal[
-        "anthropic.claude-3-sonnet-20240229-v1:0", 
+        "anthropic.claude-instant-v1",
         "anthropic.claude-v2:1",
+        "anthropic.claude-v2",
+        "anthropic.claude-3-sonnet-20240229-v1:0",
+        "anthropic.claude-3-haiku-20240307-v1:0",
     ] = "anthropic.claude-3-sonnet-20240229-v1:0"
     region_name: str = "us-west-2"
     content_type: str = "application/json"
@@ -17,14 +37,25 @@ class ClaudeLLM(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._bedrock_runtime = boto3.client("bedrock-runtime", region_name=self.region_name)  # Use a private attribute
+        # Initialize the AWS Bedrock Runtime client with the specified AWS region.
+        self._bedrock_runtime = boto3.client("bedrock-runtime", region_name=self.region_name)
 
     @property
     def bedrock_runtime(self):
+        """Provides access to the Bedrock Runtime client."""
         return self._bedrock_runtime
 
     def _prepare_kwargs(self, prompt: Dict, system_prompt: Optional[str] = None) -> Dict:
-        """Prepare common kwargs for API calls."""
+        """
+        Prepare common keyword arguments for API calls.
+
+        Parameters:
+            prompt (Dict): The input prompt for the model.
+            system_prompt (Optional[str]): An optional system-level prompt to prepend.
+
+        Returns:
+            Dict: A dictionary of keyword arguments ready for the API call.
+        """
         if system_prompt:
             prompt['system'] = system_prompt
 
@@ -40,14 +71,31 @@ class ClaudeLLM(BaseModel):
         }
 
     def generate(self, prompt: Dict, system_prompt: str = None):
-        """Generate response synchronously."""
+        """
+        Generate a response synchronously based on the given prompt.
+
+        Parameters:
+            prompt (Dict): The input prompt for the model.
+            system_prompt (str, optional): An optional system-level prompt to prepend.
+
+        Returns:
+            Dict: A dictionary with the 'role' and 'content' of the generated response.
+        """
         kwargs = self._prepare_kwargs(prompt, system_prompt)
         response = self.bedrock_runtime.invoke_model(**kwargs)
         body = json.loads(response.get("body").read())
         return {"role": body['role'], "content": body['content']}
 
     def stream_response_chunks(self, response):
-        """Stream chunks from the response body and process each chunk."""
+        """
+        Stream chunks from the response body and process each chunk.
+
+        Parameters:
+            response: The response object from an asynchronous invocation.
+
+        Yields:
+            Tuple[str, Dict]: Each yield provides a chunk of text and the cumulative message content.
+        """
         message = {}
         message_text = ""
         message_start_info = {}
@@ -66,10 +114,18 @@ class ClaudeLLM(BaseModel):
         except json.JSONDecodeError as e:
             print("\nError decoding JSON from response chunk:", e)
             raise
-        return chunk, message
 
     def generate_stream(self, prompt: Dict, system_prompt: str = None):
-        """Invoke the model with the given prompt and stream the response asynchronously."""
+        """
+        Invoke the model with the given prompt and stream the response asynchronously.
+
+        Parameters:
+            prompt (Dict): The input prompt for the model.
+            system_prompt (str, optional): An optional system-level prompt to prepend.
+
+        Yields:
+            The streaming response, chunk by chunk.
+        """
         try:
             kwargs = self._prepare_kwargs(prompt, system_prompt)
             response = self.bedrock_runtime.invoke_model_with_response_stream(**kwargs)
