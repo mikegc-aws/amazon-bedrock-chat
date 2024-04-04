@@ -25,7 +25,7 @@ class MistralLLM(BaseModel):
     bos_token: str = "<s>"
     eos_token: str = "</s>"
 
-    prompt_template: str = "{{ bos_token }}{% for message in messages %}{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}{% endif %}{% if message['role'] == 'user' %}{{ '[INST] ' + message['content'][0]['text'] + ' [/INST]' }}{% elif message['role'] == 'assistant' %}{{ message['content'][0]['text'] + eos_token}}{% else %}{{ raise_exception('Only user and assistant roles are supported!') }}{% endif %}{% endfor %}"
+    prompt_template: str = "{{ bos_token }}{% set first_user_message_handled = false %}{% for message in messages %}{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}{% endif %}{% if message['role'] == 'user' %}{% if not first_user_message_handled %}{{ '[INST] ' + system_prompt + ' ' + message['content'][0]['text'] + ' [/INST]' }}{% set first_user_message_handled = true %}{% else %}{{ '[INST] ' + message['content'][0]['text'] + ' [/INST]' }}{% endif %}{% elif message['role'] == 'assistant' %}{{ message['content'][0]['text'] + eos_token}}{% else %}{{ raise_exception('Only user and assistant roles are supported!') }}{% endif %}{% endfor %}"
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -48,8 +48,6 @@ class MistralLLM(BaseModel):
         Returns:
             Dict: A dictionary of keyword arguments ready for the API call.
         """
-        # if system_prompt:
-        #     prompt['system'] = system_prompt
 
         return {
             "modelId": self.modelId,
@@ -64,7 +62,7 @@ class MistralLLM(BaseModel):
             })
         }
 
-    def _format_prompt_as_string(self, prompt: Dict):
+    def _format_prompt_as_string(self, prompt: Dict, system_prompt: str = ""):
         """
         Format the prompt as a string.
 
@@ -80,6 +78,7 @@ class MistralLLM(BaseModel):
         data = {
             "bos_token": self.bos_token,
             "eos_token": self.eos_token,
+            "system_prompt": system_prompt,
             "messages" : prompt['messages']
         }
 
@@ -101,8 +100,8 @@ class MistralLLM(BaseModel):
         Returns:
             Dict: A dictionary with the 'role' and 'content' of the generated response.
         """
-        prompt_string = self._format_prompt_as_string(prompt)
-        kwargs = self._prepare_kwargs(prompt_string, system_prompt)
+        prompt_string = self._format_prompt_as_string(prompt, system_prompt)
+        kwargs = self._prepare_kwargs(prompt_string)
         response = self.bedrock_runtime.invoke_model(**kwargs)
         body = json.loads(response.get("body").read())
 
@@ -148,8 +147,11 @@ class MistralLLM(BaseModel):
             The streaming response, chunk by chunk.
         """
         try:
-            prompt_string = self._format_prompt_as_string(prompt)
-            kwargs = self._prepare_kwargs(prompt_string, system_prompt)
+            prompt_string = self._format_prompt_as_string(prompt, system_prompt)
+            kwargs = self._prepare_kwargs(prompt_string)
+
+            # print(json.dumps(kwargs, indent=2))
+
             response = self.bedrock_runtime.invoke_model_with_response_stream(**kwargs)
             yield from self.stream_response_chunks(response)
         except ClientError as e:
