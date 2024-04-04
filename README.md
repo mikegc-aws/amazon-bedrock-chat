@@ -59,7 +59,9 @@ etc.
 ## Version History
 
 * 0.1
-    * Initial Release
+    * Initial Release (with support for Claude)
+* 0.2
+    * Added support for Mistral AI models.
 
 ## License
 
