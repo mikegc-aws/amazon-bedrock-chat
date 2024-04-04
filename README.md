@@ -41,8 +41,16 @@ pip install -r requirements.txt
     * Ensure you have AWS credentials accessible in the environment.
 
 ```
-streamlit run ./demo_ui_chat_stream.py
+streamlit run ./demo_ui_chat_stream_claude.py
 ```
+
+or 
+
+```
+streamlit run ./demo_ui_chat_stream_mistral.py
+```
+
+etc.
 
 ## Authors
 
