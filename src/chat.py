@@ -1,14 +1,16 @@
 import json
 from pydantic import BaseModel, Field
-from typing import Optional, List, Union, Literal
+from typing import Optional, Any
 from .messages import Messages
-from .llm import ClaudeLLM
     
 
 class Chat(BaseModel):
     messages: Messages = Field(default_factory=Messages)
     system_prompt: Optional[str] = None
-    llm: ClaudeLLM = Field(default_factory=ClaudeLLM)
+    # llm: ClaudeLLM = Field(default_factory=ClaudeLLM)
+    # llm: MistralLLM = Field(default_factory=MistralLLM)
+
+    llm: Any
 
     class Config:
         arbitrary_types_allowed = True

@@ -3,12 +3,13 @@
 import streamlit as st
 import base64, json
 from src.chat import Chat
+from src.llm_bedrock_claude import ClaudeLLM
 
 default_system_prompt = "Talk like a pirate."
 
 # Create a chat object with the default system prompt
 if 'chat' not in st.session_state:
-    st.session_state['chat'] = Chat(system_prompt=default_system_prompt)
+    st.session_state['chat'] = Chat(llm=ClaudeLLM(), system_prompt=default_system_prompt)
 
 # Function to change the system prompt
 def change_system_prompt():

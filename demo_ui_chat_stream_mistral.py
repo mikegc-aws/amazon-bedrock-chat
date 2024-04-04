@@ -3,29 +3,30 @@
 import streamlit as st
 import base64
 from src.chat import Chat
+from src.llm_bedrock_mistral import MistralLLM
 
-default_system_prompt = "Talk like a pirate."
+# default_system_prompt = "Talk like a pirate."
 
 # Set a title for the page
-st.title("Claude Chat")
+st.title("Mistral Chat")
 
-# Create a chat object with the default system prompt
+# Create a chat object
 if 'chat' not in st.session_state:
-    st.session_state['chat'] = Chat(system_prompt=default_system_prompt)
+    st.session_state['chat'] = Chat(llm=MistralLLM())
 
-# Function allows you to change the system prompt
-def change_system_prompt():
-    st.session_state['chat'].system_prompt = system_prompt_input
+# # Function allows you to change the system prompt
+# def change_system_prompt():
+#     st.session_state['chat'].system_prompt = system_prompt_input
 
-# expander box with controls to change the system prompt
-with st.expander("System Prompt", expanded=False):
-    system_prompt_input = st.text_area(
-        "Enter a system prompt:", 
-        value=default_system_prompt,
-        on_change=change_system_prompt
-    )
-    st.markdown("**Try**: `Talk like a pirate.` or `Talk like a tree.` or something much longer.")
-    st.button("Save", on_click=change_system_prompt())
+# # expander box with controls to change the system prompt
+# with st.expander("System Prompt", expanded=False):
+#     system_prompt_input = st.text_area(
+#         "Enter a system prompt:", 
+#         value=default_system_prompt,
+#         on_change=change_system_prompt
+#     )
+#     st.markdown("**Try**: `Talk like a pirate.` or `Talk like a tree.` or something much longer.")
+#     st.button("Save", on_click=change_system_prompt())
 
 # Display chat messages from history on app rerun
 messages = st.session_state.chat.messages.dict()['messages']
@@ -33,7 +34,7 @@ for message in messages:
 
     # Set the avatar depending on who is talking. 
     if message["role"] == "assistant":
-        avatar="./img/claude.png"
+        avatar="./img/mistral.png"
     else:
         avatar=None
 
@@ -55,5 +56,5 @@ if prompt := st.chat_input("What is up?"):
         st.markdown(prompt)
 
     # Display assistant response in chat message container
-    with st.chat_message("assistant", avatar="./img/claude.png"):
+    with st.chat_message("assistant", avatar="./img/mistral.png"):
         response = st.write_stream(st.session_state['chat'].generate_stream(prompt))
