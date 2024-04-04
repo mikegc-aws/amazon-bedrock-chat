@@ -4,7 +4,7 @@ This is "from-first-principles" code for performing chat flows with generative A
 
 The repo includes __Python class__ files that support chat, and some __sample client implementations__.
 
-Currently this code only supports Anthropi Claude models via Amazon Bedrock.
+Currently this code supports Anthropic Claude, and Mistral AI models via Amazon Bedrock.
 
 ![StreamLit Demo](./img/streamlit_demo.gif "demo_ui_chat_stream.py in action")
 
